@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "manim-colab-setup"
+version = "0.2.0"
+description = "Manim setup collection: ManimGL Colab helpers (pip package) + sandbox/Colab guides"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "myabdur2121-cpu"}]
+
+[tool.setuptools.packages.find]
+where = ["colab/manimgl"]
+include = ["manim_setup*", "manimgl*"]
+
+[tool.setuptools.package-data]
+manim_setup = ["py.typed"]
+manimgl = ["py.typed"]
