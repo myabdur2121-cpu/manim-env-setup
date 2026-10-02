@@ -24,6 +24,29 @@ CLI    : manimgl
 - Test scene and GPU verification commands
 - Rollback notes if bad packages return
 
+## How this mobile version works
+
+This mobile version does not use Manim Community Edition and does not use Cairo as the main renderer.
+It uses original ManimGL shaders with an Android-safe OpenGL context:
+
+```text
+Scene.py
+→ manimgl / manimlib
+→ ModernGL EGL standalone context
+→ Mesa Zink OpenGL 3.3
+→ Vulkan Turnip/Freedreno
+→ Adreno GPU
+→ ffmpeg MP4 output
+```
+
+The installer patches ManimGL only for Android startup/headless EGL:
+
+1. Enables pyglet headless mode before ManimGL imports window modules.
+2. Makes ManimGL create a ModernGL EGL standalone context on Android.
+3. Adds a small `pathops.py` stub so normal scenes run even when `skia-pathops` cannot build.
+
+It does **not** replace ManimGL's real stroke shader with the rough linefix. Clean GPU output comes from using normal Termux `mesa` 26.x instead of old `mesa-zink` 22.0.5.
+
 ## Important diagnosis
 
 Do **not** use old TUR `mesa-zink 22.0.5` for ManimGL on Pixel 3a / Adreno 630. It rendered fast but caused broken/dotted/displaced vector strokes.
@@ -65,11 +88,11 @@ pkg install git
 Clone this repo:
 
 ```bash
-git clone <YOUR_REPO_URL> termux-manimgl-mobile
+git clone https://github.com/myabdur2121-cpu/manim-env-setup.git
 ```
 
 ```bash
-cd termux-manimgl-mobile
+cd manim-env-setup/mobile/termux-manimgl
 ```
 
 Start installer:
@@ -137,6 +160,7 @@ Important: in ManimGL, `-h` means help, not high quality.
 
 See `docs/`:
 
+- `docs/00-copy-paste-install.md`
 - `docs/01-fresh-termux.md`
 - `docs/02-gpu-backend.md`
 - `docs/03-commands.md`

@@ -1,6 +1,6 @@
-# 01 — Fresh Termux steps
+# 00 — Copy-paste fresh Termux install
 
-Run step-by-step:
+Run these commands in a fresh Termux app.
 
 ```bash
 pkg update
@@ -22,7 +22,7 @@ cd manim-env-setup/mobile/termux-manimgl
 bash install.sh
 ```
 
-After install:
+After setup:
 
 ```bash
 cd ~/manimgl-workspace
@@ -36,8 +36,20 @@ check-manimgl-gpu
 rendergpu test_scene.py MobileRenderTest --hd
 ```
 
-CPU fallback:
+Background render:
 
 ```bash
-rendercpu test_scene.py MobileRenderTest --hd
+background rendergpu test_scene.py MobileRenderTest --hd
+```
+
+Check background log:
+
+```bash
+check-background
+```
+
+Run full quick test including a 480p render:
+
+```bash
+test-manimgl-mobile --render
 ```
