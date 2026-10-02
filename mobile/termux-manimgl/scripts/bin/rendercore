@@ -1,0 +1,96 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+
+usage() {
+    cat <<USAGE
+Usage:
+  rendercore <backend> <engine> <file.py> <SceneName> [manimgl flags]
+
+Examples:
+  rendercore gpu manimgl-gpu test_scene.py MobileRenderTest --hd
+  rendercore cpu manimgl-cpu test_scene.py MobileRenderTest --hd
+USAGE
+}
+
+if [ "$#" -lt 4 ]; then
+    usage
+    exit 2
+fi
+
+BACKEND="$1"; shift
+ENGINE="$1"; shift
+FILE="$1"; shift
+SCENE="$1"; shift
+ARGS=("$@")
+
+if [ ! -f "$FILE" ]; then
+    echo "ERROR: file not found: $FILE"
+    exit 1
+fi
+if ! command -v "$ENGINE" >/dev/null 2>&1; then
+    echo "ERROR: engine not found in PATH: $ENGINE"
+    exit 1
+fi
+
+QUALITY="1080p"
+for a in "${ARGS[@]}"; do
+    case "$a" in
+        -l|--low_quality) QUALITY="480p" ;;
+        -m|--medium_quality) QUALITY="720p" ;;
+        --hd) QUALITY="1080p" ;;
+        --uhd) QUALITY="4k" ;;
+    esac
+done
+
+STEM="$(basename "$FILE")"
+STEM="${STEM%.*}"
+OUTDIR="$PWD/videos/$STEM/$QUALITY/$BACKEND"
+FINAL="$OUTDIR/$SCENE.mp4"
+mkdir -p "$OUTDIR"
+rm -f "$FINAL"
+
+printf '\n============================================================\n'
+printf '🎬 Render backend : %s\n' "$BACKEND"
+printf 'Engine           : %s\n' "$ENGINE"
+printf 'File             : %s\n' "$FILE"
+printf 'Scene            : %s\n' "$SCENE"
+printf 'Quality          : %s\n' "$QUALITY"
+printf 'Output dir       : %s\n' "$OUTDIR"
+printf 'Final file       : %s\n' "$FINAL"
+printf '============================================================\n\n'
+
+set +e
+"$ENGINE" "$FILE" "$SCENE" --write_file --video_dir "$OUTDIR" "${ARGS[@]}"
+STATUS=$?
+set -e
+
+if [ "$STATUS" -ne 0 ]; then
+    echo
+    echo "❌ Render failed with exit code: $STATUS"
+    echo "No false success: old output was removed before render."
+    exit "$STATUS"
+fi
+
+if [ ! -f "$FINAL" ]; then
+    echo
+    echo "❌ Render command exited successfully but expected file is missing:"
+    echo "$FINAL"
+    echo "Check ManimGL output above."
+    exit 1
+fi
+
+printf '\n✅ Render complete:\n%s\n' "$FINAL"
+
+# Optional browser preview on Android. This requires termux-open-url from Termux:API.
+if command -v termux-open-url >/dev/null 2>&1; then
+    PORT="${MANIMGL_MOBILE_PREVIEW_PORT:-41547}"
+    PIDFILE="$HOME/.manimgl-mobile-http.pid"
+    if [ -f "$PIDFILE" ]; then
+        OLD="$(cat "$PIDFILE" 2>/dev/null || true)"
+        if [ -n "$OLD" ]; then kill "$OLD" >/dev/null 2>&1 || true; fi
+    fi
+    (cd "$OUTDIR" && python -m http.server "$PORT" --bind 127.0.0.1 >/dev/null 2>&1 & echo $! > "$PIDFILE")
+    URL="http://127.0.0.1:$PORT/$(basename "$FINAL")"
+    printf '\n🌐 Opening:\n%s\n' "$URL"
+    termux-open-url "$URL" >/dev/null 2>&1 || true
+fi

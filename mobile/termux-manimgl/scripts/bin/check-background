@@ -1,0 +1,27 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
+BGDIR="$WORK/background"
+PIDFILE="$BGDIR/latest.pid"
+LATEST="$BGDIR/latest.log"
+CMDFILE="$BGDIR/latest.cmd"
+
+if [ ! -f "$PIDFILE" ]; then
+    echo "No background job pid file found."
+    exit 0
+fi
+PID="$(cat "$PIDFILE")"
+if kill -0 "$PID" >/dev/null 2>&1; then
+    echo "✅ Background job is running"
+else
+    echo "ℹ️ Background job is not running"
+fi
+echo "PID: $PID"
+[ -f "$CMDFILE" ] && { echo -n "Command: "; cat "$CMDFILE"; }
+echo "Log: $LATEST"
+echo
+if [ -f "$LATEST" ]; then
+    tail -60 "$LATEST"
+else
+    echo "No log file found."
+fi

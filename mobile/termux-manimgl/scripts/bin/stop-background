@@ -1,0 +1,23 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
+PIDFILE="$WORK/background/latest.pid"
+
+if [ ! -f "$PIDFILE" ]; then
+    echo "No background job pid file found."
+    exit 0
+fi
+PID="$(cat "$PIDFILE")"
+if kill -0 "$PID" >/dev/null 2>&1; then
+    kill "$PID" >/dev/null 2>&1 || true
+    sleep 1
+    if kill -0 "$PID" >/dev/null 2>&1; then
+        kill -9 "$PID" >/dev/null 2>&1 || true
+    fi
+    echo "Stopped background job: $PID"
+else
+    echo "Background job was not running: $PID"
+fi
+if command -v termux-wake-unlock >/dev/null 2>&1; then
+    termux-wake-unlock >/dev/null 2>&1 || true
+fi

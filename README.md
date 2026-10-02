@@ -11,7 +11,54 @@ Manim চালানোর **সব setup এক জায়গায়**: Go
 | **Google Colab** (NVIDIA GPU, EGL) | ManimCE | [`colab/manimce-opengl/gpu-nvidia-egl.md`](colab/manimce-opengl/gpu-nvidia-egl.md) | ধাপে ধাপে গাইড |
 | **Linux sandbox** (E2B / Ubuntu / Debian) | ManimCE (Cairo) | [`sandbox/manimce/`](sandbox/manimce/) | `setup_manim.sh` + `font.sh` ✅ পরীক্ষিত |
 | **Linux sandbox** (E2B) | ManimGL | [`sandbox/manimgl/manimgl-e2b-sandbox.md`](sandbox/manimgl/manimgl-e2b-sandbox.md) | সম্পূর্ণ গাইড |
+| **Android Termux / Mobile** (Pixel/Adreno) | ManimGL (3b1b) | [`mobile/termux-manimgl/`](mobile/termux-manimgl/) | auto installer + GPU/CPU wrappers + background mode |
 | যেকোনো Linux | বাংলা PDF (XeLaTeX) | [`sandbox/latex-pdf/`](sandbox/latex-pdf/) | কমান্ড |
+
+## Android Termux quick command
+
+Fresh Termux থেকে mobile setup চালাতে:
+
+```bash
+pkg update
+```
+
+```bash
+pkg install git
+```
+
+```bash
+git clone https://github.com/myabdur2121-cpu/manim-env-setup.git
+```
+
+```bash
+cd manim-env-setup/mobile/termux-manimgl
+```
+
+```bash
+bash install.sh
+```
+
+Test render:
+
+```bash
+cd ~/manimgl-workspace
+```
+
+```bash
+rendergpu test_scene.py MobileRenderTest --hd
+```
+
+Background render:
+
+```bash
+background rendergpu test_scene.py MobileRenderTest --hd
+```
+
+Check background job:
+
+```bash
+check-background
+```
 
 ## ফন্ট
 সব setup-এ একই দুটো ফন্ট: **CMU Serif** (Computer Modern, English) আর **Noto Serif Bengali** (বাংলা)।
@@ -21,6 +68,8 @@ Manim চালানোর **সব setup এক জায়গায়**: Go
 ```
 manim-env-setup/
 ├── pyproject.toml              # pip install -e . → manim_setup, manimgl (Colab ManimGL API)
+├── mobile/
+│   └── termux-manimgl/        # Android Termux ManimGL mobile GPU setup
 ├── colab/
 │   ├── manimgl/                # আগে ছিল আলাদা repo: manim-setup
 │   │   ├── README.md

@@ -1,0 +1,50 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+
+RUN_RENDER=0
+if [ "${1:-}" = "--render" ]; then
+    RUN_RENDER=1
+fi
+
+echo "=== ManimGL mobile smoke tests ==="
+
+echo
+manimgl-gpu --version || true
+
+echo
+echo "[1/4] Python import check"
+python - <<'PY'
+mods = ['manimlib', 'moderngl', 'glcontext', 'numpy', 'scipy', 'PIL', 'matplotlib', 'manimpango']
+for name in mods:
+    mod = __import__(name)
+    print('OK', name, getattr(mod, '__version__', ''))
+PY
+
+echo
+echo "[2/4] GPU context check"
+check-manimgl-gpu
+
+echo
+echo "[3/4] CPU context check"
+check-manimgl-cpu
+
+echo
+echo "[4/4] Workspace check"
+WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
+if [ -f "$WORK/test_scene.py" ]; then
+    echo "OK test scene: $WORK/test_scene.py"
+else
+    echo "Missing test scene: $WORK/test_scene.py"
+    exit 1
+fi
+
+if [ "$RUN_RENDER" -eq 1 ]; then
+    echo
+    echo "Running quick 480p GPU render test..."
+    cd "$WORK"
+    rendergpu test_scene.py MobileRenderTest -l
+else
+    echo
+    echo "Smoke tests done. To include actual render test:"
+    echo "  test-manimgl-mobile --render"
+fi

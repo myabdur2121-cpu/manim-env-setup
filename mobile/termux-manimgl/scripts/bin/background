@@ -1,0 +1,71 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Run any command in Termux background with nohup and optional wake-lock.
+# Example: background rendergpu test_scene.py MobileRenderTest --hd
+set -euo pipefail
+
+if [ "$#" -lt 1 ]; then
+    cat <<USAGE
+Usage:
+  background <command> [args...]
+
+Examples:
+  background rendergpu test_scene.py MobileRenderTest --hd
+  background rendercpu test_scene.py MobileRenderTest -m
+
+Logs:
+  ~/manimgl-workspace/background/latest.log
+  ~/manimgl-workspace/background/<timestamp>.log
+
+Control:
+  check-background
+  stop-background
+USAGE
+    exit 2
+fi
+
+WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
+BGDIR="$WORK/background"
+mkdir -p "$BGDIR"
+TS="$(date +%Y%m%d-%H%M%S)"
+LOG="$BGDIR/$TS.log"
+PIDFILE="$BGDIR/latest.pid"
+CMDFILE="$BGDIR/latest.cmd"
+LATEST="$BGDIR/latest.log"
+
+if command -v termux-wake-lock >/dev/null 2>&1; then
+    termux-wake-lock >/dev/null 2>&1 || true
+fi
+
+printf '%q ' "$@" > "$CMDFILE"
+printf '\n' >> "$CMDFILE"
+ln -sf "$LOG" "$LATEST"
+
+(
+    cd "$WORK" 2>/dev/null || cd "$HOME"
+    echo "[background] started: $(date)"
+    echo "[background] cwd: $(pwd)"
+    echo "[background] command: $(cat "$CMDFILE")"
+    echo
+    "$@"
+    STATUS=$?
+    echo
+    echo "[background] finished: $(date)"
+    echo "[background] exit code: $STATUS"
+    if command -v termux-wake-unlock >/dev/null 2>&1; then
+        termux-wake-unlock >/dev/null 2>&1 || true
+    fi
+    exit "$STATUS"
+) > "$LOG" 2>&1 &
+
+PID=$!
+echo "$PID" > "$PIDFILE"
+
+echo "✅ Background job started"
+echo "PID : $PID"
+echo "Log : $LOG"
+echo
+echo "Check:"
+echo "  check-background"
+echo
+echo "Stop:"
+echo "  stop-background"

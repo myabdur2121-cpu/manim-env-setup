@@ -1,0 +1,26 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+
+unset GALLIUM_DRIVER
+unset LIBGL_ALWAYS_SOFTWARE
+unset MESA_VK_WSI_DEBUG
+export PYOPENGL_PLATFORM=egl
+export MANIMGL_MOBILE_MODERNGL_BACKEND=egl
+export MESA_LOADER_DRIVER_OVERRIDE=zink
+export MESA_GL_VERSION_OVERRIDE=3.3
+export MESA_GLSL_VERSION_OVERRIDE=330
+export MESA_GLES_VERSION_OVERRIDE=3.2
+export MESA_NO_ERROR=1
+export TU_DEBUG=noconform
+ICD_FILE="$(ls "$PREFIX/share/vulkan/icd.d/"*freedreno*.json 2>/dev/null | head -n 1)"
+if [ -n "$ICD_FILE" ]; then export VK_ICD_FILENAMES="$ICD_FILE"; fi
+
+python - <<'PY'
+import moderngl
+ctx = moderngl.create_context(standalone=True, backend='egl')
+print('CTX_OK')
+print('GL_VENDOR:', ctx.info.get('GL_VENDOR'))
+print('GL_RENDERER:', ctx.info.get('GL_RENDERER'))
+print('GL_VERSION:', ctx.info.get('GL_VERSION'))
+print('VERSION_CODE:', ctx.version_code)
+PY
