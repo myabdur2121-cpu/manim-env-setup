@@ -1,22 +1,14 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
-PIDFILE="$WORK/background/latest.pid"
-
-if [ ! -f "$PIDFILE" ]; then
-    echo "No background job pid file found."
-    exit 0
-fi
-PID="$(cat "$PIDFILE")"
-if kill -0 "$PID" >/dev/null 2>&1; then
-    kill "$PID" >/dev/null 2>&1 || true
-    sleep 1
-    if kill -0 "$PID" >/dev/null 2>&1; then
-        kill -9 "$PID" >/dev/null 2>&1 || true
-    fi
-    echo "Stopped background job: $PID"
+SESSIONFILE="$WORK/background/latest.session"
+SESSION="${MANIMGL_BACKGROUND_SESSION:-manimgl-bg}"
+[ -f "$SESSIONFILE" ] && SESSION="$(cat "$SESSIONFILE")"
+if command -v tmux >/dev/null 2>&1 && tmux has-session -t "$SESSION" 2>/dev/null; then
+    tmux kill-session -t "$SESSION" 2>/dev/null || true
+    echo "Stopped background tmux session: $SESSION"
 else
-    echo "Background job was not running: $PID"
+    echo "Background tmux session was not running: $SESSION"
 fi
 if command -v termux-wake-unlock >/dev/null 2>&1; then
     termux-wake-unlock >/dev/null 2>&1 || true

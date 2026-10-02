@@ -48,6 +48,12 @@ Check background log:
 check-background
 ```
 
+Attach live background tmux session:
+
+```bash
+attach-background
+```
+
 Run full quick test including a 480p render:
 
 ```bash

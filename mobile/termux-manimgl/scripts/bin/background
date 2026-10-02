@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Run any command in Termux background with nohup and optional wake-lock.
+# Run a command inside a detached tmux session with logs and optional wake-lock.
 # Example: background rendergpu test_scene.py MobileRenderTest --hd
 set -euo pipefail
 
@@ -12,60 +12,94 @@ Examples:
   background rendergpu test_scene.py MobileRenderTest --hd
   background rendercpu test_scene.py MobileRenderTest -m
 
-Logs:
-  ~/manimgl-workspace/background/latest.log
-  ~/manimgl-workspace/background/<timestamp>.log
-
 Control:
   check-background
+  attach-background
   stop-background
 USAGE
     exit 2
 fi
 
+if ! command -v tmux >/dev/null 2>&1; then
+    echo "ERROR: tmux is not installed. Run: pkg install tmux"
+    exit 1
+fi
+
 WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
 BGDIR="$WORK/background"
+SESSION="${MANIMGL_BACKGROUND_SESSION:-manimgl-bg}"
 mkdir -p "$BGDIR"
+
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+    echo "⚠️ A background ManimGL session is already running: $SESSION"
+    echo "Check:  check-background"
+    echo "Attach: attach-background"
+    echo "Stop:   stop-background"
+    exit 1
+fi
+
 TS="$(date +%Y%m%d-%H%M%S)"
 LOG="$BGDIR/$TS.log"
+RUNNER="$BGDIR/$TS-runner.sh"
 PIDFILE="$BGDIR/latest.pid"
+SESSIONFILE="$BGDIR/latest.session"
 CMDFILE="$BGDIR/latest.cmd"
 LATEST="$BGDIR/latest.log"
+STATUSFILE="$BGDIR/latest.status"
 
+CMD_Q="$(printf '%q ' "$@")"
+WORK_Q="$(printf '%q' "$WORK")"
+LOG_Q="$(printf '%q' "$LOG")"
+STATUS_Q="$(printf '%q' "$STATUSFILE")"
+CMD_DISPLAY="$CMD_Q"
+
+printf '%s\n' "$CMD_Q" > "$CMDFILE"
+ln -sf "$LOG" "$LATEST"
+echo "$SESSION" > "$SESSIONFILE"
+echo "running" > "$STATUSFILE"
+
+cat > "$RUNNER" <<EOF_RUNNER
+#!/data/data/com.termux/files/usr/bin/bash
+set +e
+cd $WORK_Q 2>/dev/null || cd "\$HOME"
 if command -v termux-wake-lock >/dev/null 2>&1; then
     termux-wake-lock >/dev/null 2>&1 || true
 fi
-
-printf '%q ' "$@" > "$CMDFILE"
-printf '\n' >> "$CMDFILE"
-ln -sf "$LOG" "$LATEST"
-
-(
-    cd "$WORK" 2>/dev/null || cd "$HOME"
-    echo "[background] started: $(date)"
-    echo "[background] cwd: $(pwd)"
-    echo "[background] command: $(cat "$CMDFILE")"
+{
+    echo "[background/tmux] started: \$(date)"
+    echo "[background/tmux] session: $SESSION"
+    echo "[background/tmux] cwd: \$(pwd)"
+    echo "[background/tmux] command: $CMD_DISPLAY"
     echo
-    "$@"
-    STATUS=$?
+    $CMD_Q
+    STATUS=\$?
     echo
-    echo "[background] finished: $(date)"
-    echo "[background] exit code: $STATUS"
-    if command -v termux-wake-unlock >/dev/null 2>&1; then
-        termux-wake-unlock >/dev/null 2>&1 || true
-    fi
-    exit "$STATUS"
-) > "$LOG" 2>&1 &
+    echo "[background/tmux] finished: \$(date)"
+    echo "[background/tmux] exit code: \$STATUS"
+    echo "\$STATUS" > $STATUS_Q
+} > $LOG_Q 2>&1
+if command -v termux-wake-unlock >/dev/null 2>&1; then
+    termux-wake-unlock >/dev/null 2>&1 || true
+fi
+exit \$STATUS
+EOF_RUNNER
+chmod +x "$RUNNER"
 
-PID=$!
-echo "$PID" > "$PIDFILE"
+tmux new-session -d -s "$SESSION" "$RUNNER"
+sleep 0.2
+PANE_PID="$(tmux list-panes -t "$SESSION" -F '#{pane_pid}' 2>/dev/null | head -n 1 || true)"
+[ -n "$PANE_PID" ] && echo "$PANE_PID" > "$PIDFILE"
 
-echo "✅ Background job started"
-echo "PID : $PID"
-echo "Log : $LOG"
+echo "✅ Background tmux job started"
+echo "Session : $SESSION"
+[ -n "${PANE_PID:-}" ] && echo "Pane PID: $PANE_PID"
+echo "Log     : $LOG"
 echo
 echo "Check:"
 echo "  check-background"
+echo
+echo "Attach live session:"
+echo "  attach-background"
 echo
 echo "Stop:"
 echo "  stop-background"

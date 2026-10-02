@@ -66,6 +66,12 @@ Check background job:
 check-background
 ```
 
+Attach background tmux session:
+
+```bash
+attach-background
+```
+
 ## ফন্ট
 সব setup-এ একই দুটো ফন্ট: **CMU Serif** (Computer Modern, English) আর **Noto Serif Bengali** (বাংলা)।
 

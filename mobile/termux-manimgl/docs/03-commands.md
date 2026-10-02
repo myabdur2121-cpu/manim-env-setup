@@ -72,6 +72,10 @@ check-background
 ```
 
 ```bash
+attach-background
+```
+
+```bash
 stop-background
 ```
 

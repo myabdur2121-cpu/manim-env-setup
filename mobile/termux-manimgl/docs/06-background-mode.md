@@ -1,35 +1,70 @@
 # 06 — Background mode
 
-The installer adds this command:
+Background mode uses **tmux + optional Termux wake-lock**.
 
-```bash
-background <command> [args...]
+This matches the earlier Termux background-agent pattern:
+
+```text
+background command
+→ create detached tmux session
+→ run render inside tmux
+→ write logs
+→ optional termux-wake-lock
+→ terminal can be closed/detached
 ```
 
-Example GPU render:
+## Start background GPU render
 
 ```bash
 cd ~/manimgl-workspace
 background rendergpu test_scene.py MobileRenderTest --hd
 ```
 
-Check progress:
+## Start background CPU render
+
+```bash
+background rendercpu test_scene.py MobileRenderTest --hd
+```
+
+## Check progress
 
 ```bash
 check-background
 ```
 
-Stop latest job:
+## Attach to live tmux session
+
+```bash
+attach-background
+```
+
+Detach from tmux without stopping render:
+
+```text
+Ctrl-b then d
+```
+
+## Stop latest background session
 
 ```bash
 stop-background
 ```
 
-Logs live here:
+## Logs
 
 ```text
 ~/manimgl-workspace/background/latest.log
 ~/manimgl-workspace/background/<timestamp>.log
 ```
 
-If Termux:API commands are available, `background` also uses `termux-wake-lock` while the render runs and releases it when finished.
+## Important limitation
+
+This is stronger than a plain `command &`, but it is still not a true Android system service.
+
+It should survive closing/detaching the terminal UI, but it will not survive:
+
+- Termux app force-stop
+- Android killing Termux under memory/battery pressure
+- phone reboot
+
+For best result, disable battery optimization for Termux and Termux:API in Android settings.

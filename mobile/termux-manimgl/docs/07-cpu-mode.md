@@ -58,6 +58,12 @@ Check log:
 check-background
 ```
 
+Attach live tmux session:
+
+```bash
+attach-background
+```
+
 ## Output path
 
 CPU output is separated from GPU output:

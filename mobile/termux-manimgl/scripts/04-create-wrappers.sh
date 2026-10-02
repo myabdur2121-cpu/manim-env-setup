@@ -24,6 +24,7 @@ install_bin "$ROOT_DIR/scripts/bin/test-manimgl-mobile"
 install_bin "$ROOT_DIR/scripts/bin/test-manimgl-cpu"
 install_bin "$ROOT_DIR/scripts/bin/stop-background"
 install_bin "$ROOT_DIR/scripts/bin/check-background"
+install_bin "$ROOT_DIR/scripts/bin/attach-background"
 install_bin "$ROOT_DIR/scripts/bin/background"
 
 printf '\nWrapper commands installed.\n'

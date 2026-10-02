@@ -13,7 +13,7 @@ pkg update
 say "Installing base build/runtime packages"
 pkg install -y \
     bash coreutils findutils grep sed gawk which procps \
-    git curl wget nano \
+    git curl wget nano tmux termux-api \
     python clang cmake make pkg-config rust binutils patchelf \
     ffmpeg \
     freetype fontconfig harfbuzz fribidi pango libcairo \

@@ -1,0 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
+SESSIONFILE="$WORK/background/latest.session"
+SESSION="${MANIMGL_BACKGROUND_SESSION:-manimgl-bg}"
+[ -f "$SESSIONFILE" ] && SESSION="$(cat "$SESSIONFILE")"
+if tmux has-session -t "$SESSION" 2>/dev/null; then
+    tmux attach-session -t "$SESSION"
+else
+    echo "No running background tmux session: $SESSION"
+fi

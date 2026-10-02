@@ -172,3 +172,14 @@ See `docs/`:
 ## License
 
 MIT
+
+
+## Repo self-check for maintainers
+
+From `mobile/termux-manimgl` inside the repo:
+
+```bash
+bash scripts/verify-repo.sh
+```
+
+This checks shell syntax, Python syntax, and required files. It does not replace a real fresh Termux install test.

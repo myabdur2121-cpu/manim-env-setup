@@ -2,26 +2,32 @@
 set -euo pipefail
 WORK="${MANIMGL_WORKSPACE:-$HOME/manimgl-workspace}"
 BGDIR="$WORK/background"
+SESSIONFILE="$BGDIR/latest.session"
 PIDFILE="$BGDIR/latest.pid"
 LATEST="$BGDIR/latest.log"
 CMDFILE="$BGDIR/latest.cmd"
+STATUSFILE="$BGDIR/latest.status"
+SESSION="${MANIMGL_BACKGROUND_SESSION:-manimgl-bg}"
+[ -f "$SESSIONFILE" ] && SESSION="$(cat "$SESSIONFILE")"
 
-if [ ! -f "$PIDFILE" ]; then
-    echo "No background job pid file found."
-    exit 0
-fi
-PID="$(cat "$PIDFILE")"
-if kill -0 "$PID" >/dev/null 2>&1; then
-    echo "✅ Background job is running"
+if command -v tmux >/dev/null 2>&1 && tmux has-session -t "$SESSION" 2>/dev/null; then
+    echo "✅ Background tmux session is running"
 else
-    echo "ℹ️ Background job is not running"
+    echo "ℹ️ Background tmux session is not running"
 fi
-echo "PID: $PID"
+
+echo "Session: $SESSION"
+[ -f "$PIDFILE" ] && echo "Pane PID: $(cat "$PIDFILE")"
+[ -f "$STATUSFILE" ] && echo "Status/exit: $(cat "$STATUSFILE")"
 [ -f "$CMDFILE" ] && { echo -n "Command: "; cat "$CMDFILE"; }
 echo "Log: $LATEST"
 echo
 if [ -f "$LATEST" ]; then
-    tail -60 "$LATEST"
+    tail -80 "$LATEST"
 else
     echo "No log file found."
 fi
+
+echo
+echo "Attach live session: attach-background"
+echo "Stop session       : stop-background"
