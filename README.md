@@ -48,6 +48,12 @@ cd ~/manimgl-workspace
 rendergpu test_scene.py MobileRenderTest --hd
 ```
 
+CPU fallback render:
+
+```bash
+rendercpu test_scene.py MobileRenderTest --hd
+```
+
 Background render:
 
 ```bash

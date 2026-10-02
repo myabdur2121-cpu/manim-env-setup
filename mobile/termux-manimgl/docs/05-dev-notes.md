@@ -35,6 +35,7 @@ rendergl-safe
 check-manimgl-gpu
 check-manimgl-cpu
 test-manimgl-mobile
+test-manimgl-cpu
 ```
 
 ## Final confirmed fix

@@ -74,3 +74,22 @@ check-background
 ```bash
 stop-background
 ```
+
+
+## CPU-only test
+
+```bash
+test-manimgl-cpu
+```
+
+With actual quick 480p CPU render:
+
+```bash
+test-manimgl-cpu --render
+```
+
+## CPU background render
+
+```bash
+background rendercpu test_scene.py MobileRenderTest --hd
+```

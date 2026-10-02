@@ -167,6 +167,7 @@ See `docs/`:
 - `docs/04-troubleshooting.md`
 - `docs/05-dev-notes.md`
 - `docs/06-background-mode.md`
+- `docs/07-cpu-mode.md`
 
 ## License
 

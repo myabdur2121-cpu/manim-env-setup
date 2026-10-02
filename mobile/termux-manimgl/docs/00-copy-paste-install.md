@@ -53,3 +53,16 @@ Run full quick test including a 480p render:
 ```bash
 test-manimgl-mobile --render
 ```
+
+
+CPU fallback render:
+
+```bash
+rendercpu test_scene.py MobileRenderTest --hd
+```
+
+CPU render test:
+
+```bash
+test-manimgl-cpu --render
+```
